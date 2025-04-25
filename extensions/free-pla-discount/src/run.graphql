@@ -1,0 +1,17 @@
+query RunInput {
+  cart {
+    lines {
+      id
+      merchandise {
+        ... on ProductVariant {
+          id
+          product {
+            hasAnyTag(tags: ["Filament Under $25"])
+
+          }
+        }
+        __typename
+      }
+    }
+  }
+}
