@@ -3,6 +3,8 @@ import type {
   FunctionRunResult,
   Target,
   ProductVariant,
+  Attribute,
+  MoneyV2,
 } from "../generated/api";
 import {
   DiscountApplicationStrategy,
@@ -14,28 +16,48 @@ const EMPTY_DISCOUNT: FunctionRunResult = {
 };
 
 export function run(input: RunInput): FunctionRunResult {
-  const targets: Target[] = input.cart.lines
-    .filter(line => (line.merchandise as ProductVariant).product.hasAnyTag)
-    .map(line => ({
+  const hasAttribute: boolean = (input.cart.attribute as Attribute)?.value === 'true';
+
+  const taggedLines = input.cart.lines.filter(
+    (line) => (line.merchandise as ProductVariant).product.inAnyCollection
+  );
+
+  console.log(JSON.stringify(taggedLines), "ASDASDASDasd")
+  
+  const cheapestLine = taggedLines.reduce((lowest, line) => {
+    const currentAmount = parseFloat((line.cost.amountPerQuantity as MoneyV2).amount);
+    if (!lowest) return line;
+  
+    const lowestAmount = parseFloat((lowest.cost.amountPerQuantity as MoneyV2).amount);
+    return currentAmount < lowestAmount ? line : lowest;
+  }, null as typeof taggedLines[0] | null);
+
+  const targets: Target[] = cheapestLine
+  ? [{
       productVariant: {
-        id: (line.merchandise as ProductVariant).id,
+        id: (cheapestLine.merchandise as ProductVariant).id,
       }
-    }));
+    }]
+  : [];
 
   const DISCOUNTED_ITEMS: FunctionRunResult = {
     discountApplicationStrategy: DiscountApplicationStrategy.First,
     discounts: [
       {
-        message: "Free PLA Filament for orders over $125",
+        message: "Free PLA Filament",
         targets: targets,
         value: {
-          fixedAmount: {
-            amount: "25",
+          percentage: {
+            value: "100",
           },
         }
       },
     ],
   };
 
-  return targets.length === 0 ? EMPTY_DISCOUNT : DISCOUNTED_ITEMS;
+  if (hasAttribute && taggedLines.length > 0) {
+    return DISCOUNTED_ITEMS;
+  }
+
+  return EMPTY_DISCOUNT;
 };

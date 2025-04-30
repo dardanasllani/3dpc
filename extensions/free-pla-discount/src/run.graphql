@@ -1,13 +1,21 @@
 query RunInput {
   cart {
+    attribute(key: "free-pla-discount") {
+      value
+      __typename
+    }
     lines {
       id
+      cost {
+        amountPerQuantity {
+          amount
+        }
+      }
       merchandise {
         ... on ProductVariant {
           id
           product {
-            hasAnyTag(tags: ["Filament Under $25"])
-
+            inAnyCollection(ids: ["gid://shopify/Collection/285485891653"])
           }
         }
         __typename

@@ -1,29 +1,35 @@
 import {
   reactExtension,
   useDiscountCodes,
-  useApplyDiscountCodeChange
+  useApplyAttributeChange,
+  useAttributes
 } from "@shopify/ui-extensions-react/checkout";
+import { useEffect } from "react";
 
-// 1. Choose an extension target
 export default reactExtension("purchase.checkout.block.render", () => (
   <Extension />
 ));
 
 function Extension() {
   const codes = useDiscountCodes();
-  const applyDiscountCodeChange = useApplyDiscountCodeChange();
+  const attributes = useAttributes();
+  const applyAttributeChange = useApplyAttributeChange();
 
-  if (codes.find((code) => code.code.includes("FREEPLA-") && code.code !== "FREEPLA-DISCOUNT")) {
-    applyDiscountCodeChange({
-      code: "FREEPLA-DISCOUNT",
-      type: "addDiscountCode",
-    });
-  } else if (codes.find((code) => code.code.includes("FREEPLA-"))) {
-    applyDiscountCodeChange({
-      code: "FREEPLA-DISCOUNT",
-      type: "removeDiscountCode",
-    });
-  }
+  useEffect(() => {
+    const value = codes.find((code) => code.code.includes("FREEPLA-"))
+      ? "true"
+      : "false";
+
+    if (!attributes.find((attribute) => attribute.key === "free-pla-discount" && attribute.value == value)) {
+      applyAttributeChange({
+        key: "free-pla-discount",
+        type: "updateAttribute",
+        value: codes.find((code) => code.code.includes("FREEPLA-"))
+          ? "true"
+          : "false"
+      })
+    }
+  }, [codes])
 
   return (
     <></>
