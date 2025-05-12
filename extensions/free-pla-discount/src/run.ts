@@ -21,8 +21,6 @@ export function run(input: RunInput): FunctionRunResult {
   const taggedLines = input.cart.lines.filter(
     (line) => (line.merchandise as ProductVariant).product.inAnyCollection
   );
-
-  console.log(JSON.stringify(taggedLines), "ASDASDASDasd")
   
   const cheapestLine = taggedLines.reduce((lowest, line) => {
     const currentAmount = parseFloat((line.cost.amountPerQuantity as MoneyV2).amount);
@@ -36,6 +34,7 @@ export function run(input: RunInput): FunctionRunResult {
   ? [{
       productVariant: {
         id: (cheapestLine.merchandise as ProductVariant).id,
+        quantity: 1
       }
     }]
   : [];
